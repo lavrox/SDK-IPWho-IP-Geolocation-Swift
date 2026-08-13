@@ -6,10 +6,11 @@ Official Swift client for the [IPWho](https://www.ipwho.org) IP Intelligence API
 
 SPM uses the GitHub repo URL (no extra registry).
 
-- Product: [ipwho.org](https://www.ipwho.org)
-- API docs: [ipwho.org/docs](https://www.ipwho.org/docs)
-- Get an API key: [ipwho.org](https://www.ipwho.org)
-- Live API host: `https://api.ipwho.org`
+- Website: [https://www.ipwho.org](https://www.ipwho.org)
+- API docs: [https://www.ipwho.org/docs](https://www.ipwho.org/docs)
+- Get an API key: [https://www.ipwho.org](https://www.ipwho.org)
+- Live API: [https://api.ipwho.org](https://api.ipwho.org)
+- Source: [https://github.com/lavrox/SDK-IPWho-Swift](https://github.com/lavrox/SDK-IPWho-Swift)
 
 ## Installation
 
@@ -150,7 +151,7 @@ Also `Timezone`, `Flag`, `Currency`, `Connection`, `Security`, `UserAgent` (brow
 
 ## Troubleshooting
 
-- Key: [ipwho.org](https://www.ipwho.org).
+- Key: [https://www.ipwho.org](https://www.ipwho.org).
 - HTTP 403: do not strip the SDK User-Agent.
 - Optionals: city and user-agent are often nil on anycast IPs.
 
@@ -158,7 +159,7 @@ Also `Timezone`, `Flag`, `Currency`, `Connection`, `Security`, `UserAgent` (brow
 
 ### v1.0.0
 
-- `lookup`, `me`, `bulk` matching [api.ipwho.org](https://api.ipwho.org)
+- `lookup`, `me`, `bulk` matching [https://api.ipwho.org](https://api.ipwho.org)
 
 ## License
 
@@ -166,12 +167,11 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Support
 
-- Documentation: [ipwho.org/docs](https://www.ipwho.org/docs)
-- Contact: [ipwho.org/contact](https://www.ipwho.org/contact)
-- GitHub Issues: [lavrox/SDK-IPWho-Swift](https://github.com/lavrox/SDK-IPWho-Swift/issues)
-- Website: [ipwho.org](https://www.ipwho.org)
+- Documentation: [https://www.ipwho.org/docs](https://www.ipwho.org/docs)
+- Contact: [https://www.ipwho.org/contact](https://www.ipwho.org/contact)
+- GitHub Issues: [https://github.com/lavrox/SDK-IPWho-Swift/issues](https://github.com/lavrox/SDK-IPWho-Swift/issues)
+- Website: [https://www.ipwho.org](https://www.ipwho.org)
 
 ---
 
-Product by [lavrox.com](https://lavrox.com)
-# SDK-IPWho-Swift
+Product by [https://lavrox.com](https://lavrox.com)
