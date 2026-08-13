@@ -1,6 +1,6 @@
 # IPWho ([ipwho.org](https://www.ipwho.org)) Swift SDK
 
-[![Swift](https://img.shields.io/badge/swift-5.9+-F05138.svg)](https://swift.org/) [![license](https://img.shields.io/github/license/lavrox/SDK-IPWho-Swift?style=flat-square)](https://github.com/lavrox/SDK-IPWho-Swift/blob/main/LICENSE)
+[![Swift](https://img.shields.io/badge/swift-5.9+-F05138.svg)](https://swift.org/) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-Swift/blob/main/LICENSE)
 
 Official Swift client for the [IPWho](https://www.ipwho.org) IP Intelligence API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security, and user-agent when present.
 
