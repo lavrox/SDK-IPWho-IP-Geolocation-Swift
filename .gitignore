@@ -1,0 +1,22 @@
+# Internal maintainer docs (do not publish)
+*.internal.md
+
+# SwiftPM / Xcode
+/.build/
+/Packages/
+DerivedData/
+*.xcodeproj
+xcuserdata/
+.swiftpm/
+
+# Env
+.env
+.env.*
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
