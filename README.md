@@ -155,6 +155,14 @@ Also `Timezone`, `Flag`, `Currency`, `Connection`, `Security`, `UserAgent` (brow
 - HTTP 403: do not strip the SDK User-Agent.
 - Optionals: city and user-agent are often nil on anycast IPs.
 
+## Testing
+
+```bash
+IPWHO_API_KEY=your_key swift run Check
+```
+
+The live check is `Examples/Check/test_main.swift`.
+
 ## Changelog
 
 ### v1.0.0

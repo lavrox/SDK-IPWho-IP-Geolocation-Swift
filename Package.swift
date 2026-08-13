@@ -11,8 +11,14 @@ let package = Package(
     ],
     products: [
         .library(name: "IPWhois", targets: ["IPWhois"]),
+        .executable(name: "Check", targets: ["Check"]),
     ],
     targets: [
         .target(name: "IPWhois", dependencies: []),
+        .executableTarget(
+            name: "Check",
+            dependencies: ["IPWhois"],
+            path: "Examples/Check"
+        ),
     ]
 )
