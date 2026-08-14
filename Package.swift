@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "IPWhois",
+    name: "IPWho",
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
@@ -10,14 +10,14 @@ let package = Package(
         .watchOS(.v8),
     ],
     products: [
-        .library(name: "IPWhois", targets: ["IPWhois"]),
+        .library(name: "IPWho", targets: ["IPWho"]),
         .executable(name: "Check", targets: ["Check"]),
     ],
     targets: [
-        .target(name: "IPWhois", dependencies: []),
+        .target(name: "IPWho", dependencies: []),
         .executableTarget(
             name: "Check",
-            dependencies: ["IPWhois"],
+            dependencies: ["IPWho"],
             path: "Examples/Check"
         ),
     ]

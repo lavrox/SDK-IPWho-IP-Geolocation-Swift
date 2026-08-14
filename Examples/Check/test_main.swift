@@ -1,5 +1,5 @@
 import Foundation
-import IPWhois
+import IPWho
 #if canImport(Darwin)
 import Darwin
 #else
@@ -16,7 +16,7 @@ func run() async {
     guard let key = ProcessInfo.processInfo.environment["IPWHO_API_KEY"] else {
         print("no key"); exit(2)
     }
-    let c = IPWhoisClient(apiKey: key)
+    let c = IPWhoClient(apiKey: key)
 
     do {
         // 1. lookup
@@ -53,7 +53,7 @@ func run() async {
 
     // 4. bad key
     do {
-        _ = try await IPWhoisClient(apiKey: "sk.invalid_test_key").lookup(ip: "8.8.8.8")
+        _ = try await IPWhoClient(apiKey: "sk.invalid_test_key").lookup(ip: "8.8.8.8")
         ok(false, "bad key should raise")
     } catch {
         ok(true, "bad key raised \(error)")

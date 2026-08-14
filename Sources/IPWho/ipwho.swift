@@ -5,11 +5,11 @@
 // import PackageDescription
 //
 // let package = Package(
-//     name: "IPWhois",
+//     name: "IPWho",
 //     platforms: [.iOS(.v15), .macOS(.v12), .tvOS(.v15), .watchOS(.v8)],
-//     products: [.library(name: "IPWhois", targets: ["IPWhois"])],
+//     products: [.library(name: "IPWho", targets: ["IPWho"])],
 //     dependencies: [],
-//     targets: [.target(name: "IPWhois", dependencies: [])]
+//     targets: [.target(name: "IPWho", dependencies: [])]
 // )
 // ---------------------------------------------------------------------------
 
@@ -20,8 +20,8 @@ import FoundationNetworking
 
 // MARK: - Error Type
 
-/// Errors that can occur when using the IPWhois API.
-public enum IPWhoisError: Error, LocalizedError, Sendable {
+/// Errors that can occur when using the IPWho API.
+public enum IPWhoError: Error, LocalizedError, Sendable {
     /// Network / transport-level failure.
     case networkError(Error)
     /// The server returned an unsuccessful HTTP status code.
@@ -455,17 +455,17 @@ public struct BulkData: Codable, Sendable {
     }
 }
 
-// MARK: - IPWhoisClient
+// MARK: - IPWhoClient
 
-/// Swift client for the IPWho IP Intelligence API.
+/// Swift client for the IPWho IP Geolocation API.
 ///
 /// Usage:
 /// ```swift
-/// let client = IPWhoisClient(apiKey: "sk.xxxx")
+/// let client = IPWhoClient(apiKey: "sk.xxxx")
 /// let result = try await client.lookup(ip: "8.8.8.8")
 /// print(result.data?.geoLocation?.city ?? "unknown")
 /// ```
-public final class IPWhoisClient: Sendable {
+public final class IPWhoClient: Sendable {
     private let apiKey: String
     private let baseURL: URL
     private let session: URLSession
@@ -516,7 +516,7 @@ public final class IPWhoisClient: Sendable {
     /// - Returns: `BulkResponse` containing an array of `IpGeoResponse` objects.
     public func bulk(ips: [String]) async throws -> BulkResponse {
         guard !ips.isEmpty else {
-            throw IPWhoisError.apiError(message: "IP list must not be empty")
+            throw IPWhoError.apiError(message: "IP list must not be empty")
         }
         let bulkParam = ips.joined(separator: ",")
         let path = "/bulk/\(bulkParam)"
@@ -543,13 +543,13 @@ public final class IPWhoisClient: Sendable {
         do {
             let wrapper = try decoder.decode(IpGeoResponse.self, from: data)
             if !wrapper.success {
-                throw IPWhoisError.apiError(message: wrapper.message ?? "API returned success=false")
+                throw IPWhoError.apiError(message: wrapper.message ?? "API returned success=false")
             }
             return wrapper
-        } catch let error as IPWhoisError {
+        } catch let error as IPWhoError {
             throw error
         } catch {
-            throw IPWhoisError.decodingError(error)
+            throw IPWhoError.decodingError(error)
         }
     }
 
@@ -561,13 +561,13 @@ public final class IPWhoisClient: Sendable {
         do {
             let wrapper = try decoder.decode(BulkResponse.self, from: data)
             if !wrapper.success {
-                throw IPWhoisError.apiError(message: "Bulk API returned success=false")
+                throw IPWhoError.apiError(message: "Bulk API returned success=false")
             }
             return wrapper
-        } catch let error as IPWhoisError {
+        } catch let error as IPWhoError {
             throw error
         } catch {
-            throw IPWhoisError.decodingError(error)
+            throw IPWhoError.decodingError(error)
         }
     }
 
@@ -578,7 +578,7 @@ public final class IPWhoisClient: Sendable {
     ) throws -> URL {
         guard var components = URLComponents(url: baseURL.appendingPathComponent(path),
                                              resolvingAgainstBaseURL: false) else {
-            throw IPWhoisError.invalidResponse
+            throw IPWhoError.invalidResponse
         }
         var queryItems = [URLQueryItem(name: "apiKey", value: apiKey)]
         if format != .json {
@@ -589,36 +589,36 @@ public final class IPWhoisClient: Sendable {
         }
         components.queryItems = queryItems
         guard let url = components.url else {
-            throw IPWhoisError.invalidResponse
+            throw IPWhoError.invalidResponse
         }
         return url
     }
 
     private func validateHTTPResponse(_ urlResponse: URLResponse, data: Data) throws {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
-            throw IPWhoisError.invalidResponse
+            throw IPWhoError.invalidResponse
         }
         switch httpResponse.statusCode {
         case 200:
             return
         case 404:
             let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "IP not found"
-            throw IPWhoisError.notFound(message: msg)
+            throw IPWhoError.notFound(message: msg)
         case 429:
             let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "Rate limit exceeded"
-            throw IPWhoisError.rateLimitExceeded(message: msg)
+            throw IPWhoError.rateLimitExceeded(message: msg)
         default:
             let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "Unknown error"
-            throw IPWhoisError.httpError(statusCode: httpResponse.statusCode, message: msg)
+            throw IPWhoError.httpError(statusCode: httpResponse.statusCode, message: msg)
         }
     }
 }
 
 // MARK: - Example Usage
 
-// import IPWhois
+// import IPWho
 //
-// let client = IPWhoisClient(apiKey: ProcessInfo.processInfo.environment["IPWHO_API_KEY"] ?? "sk.xxxx")
+// let client = IPWhoClient(apiKey: ProcessInfo.processInfo.environment["IPWHO_API_KEY"] ?? "sk.xxxx")
 //
 // Task {
 //     do {

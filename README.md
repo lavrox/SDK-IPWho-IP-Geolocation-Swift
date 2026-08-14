@@ -1,37 +1,41 @@
 # IPWho ([ipwho.org](https://www.ipwho.org)) Swift SDK
 
-[![Swift](https://img.shields.io/badge/swift-5.9+-F05138.svg)](https://swift.org/) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-Swift/blob/main/LICENSE)
+[![Swift](https://img.shields.io/badge/swift-5.9+-F05138.svg)](https://swift.org/) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift/blob/main/LICENSE)
 
-Official Swift client for the [IPWho](https://www.ipwho.org) IP Intelligence API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security, and user-agent when present.
+Official Swift client for the [IPWho](https://www.ipwho.org) IP Geolocation API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security, and user-agent when present.
 
 SPM uses the GitHub repo URL (no extra registry).
 
 - Website: [https://www.ipwho.org](https://www.ipwho.org)
 - API docs: [https://www.ipwho.org/docs](https://www.ipwho.org/docs)
-- Get an API key: [https://www.ipwho.org](https://www.ipwho.org)
+- Get an API key: [https://www.ipwho.org/free-plan](https://www.ipwho.org/free-plan) (free [Lavrox](https://lavrox.com) account)
 - Live API: [https://api.ipwho.org](https://api.ipwho.org)
-- Source: [https://github.com/lavrox/SDK-IPWho-Swift](https://github.com/lavrox/SDK-IPWho-Swift)
+- Source: [https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift](https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift)
+
+## API key
+
+Open a free [Lavrox](https://lavrox.com) account to get an API key for [IPWho](https://www.ipwho.org). Create your key at [ipwho.org/free-plan](https://www.ipwho.org/free-plan) — no credit card required.
 
 ## Installation
 
 Xcode: **File → Add Package Dependencies…**
 
 ```
-https://github.com/lavrox/SDK-IPWho-Swift
+https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift
 ```
 
 ```swift
-.package(url: "https://github.com/lavrox/SDK-IPWho-Swift.git", from: "1.0.0")
+.package(url: "https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift.git", from: "1.0.0")
 ```
 
-Swift 5.9+. Client: `IPWhoisClient`. Product: `IPWhois`.
+Swift 5.9+. Client: `IPWhoClient`. Product: `IPWho`.
 
 ## Quick Start
 
 ```swift
-import IPWhois
+import IPWho
 
-let client = IPWhoisClient(apiKey: ProcessInfo.processInfo.environment["IPWHO_API_KEY"] ?? "")
+let client = IPWhoClient(apiKey: ProcessInfo.processInfo.environment["IPWHO_API_KEY"] ?? "")
 
 let resp = try await client.lookup(ip: "8.8.8.8")           // GET /ip/{ip}
 let me = try await client.me()                              // GET /me
@@ -118,13 +122,13 @@ print(bulk.data?.responseArray?.count ?? 0)
 
 ## API Reference
 
-### `IPWhoisClient(apiKey:baseURL:session:)`
+### `IPWhoClient(apiKey:baseURL:session:)`
 
 Default base `https://api.ipwho.org`. Query `apiKey`.
 
 ### Errors
 
-`IPWhoisError`: `networkError`, `httpError`, `apiError`, `rateLimitExceeded`, `notFound`, `decodingError`, `invalidResponse`.
+`IPWhoError`: `networkError`, `httpError`, `apiError`, `rateLimitExceeded`, `notFound`, `decodingError`, `invalidResponse`.
 
 ## Type Definitions
 
@@ -177,9 +181,11 @@ MIT License — see [LICENSE](LICENSE).
 
 - Documentation: [https://www.ipwho.org/docs](https://www.ipwho.org/docs)
 - Contact: [https://www.ipwho.org/contact](https://www.ipwho.org/contact)
-- GitHub Issues: [https://github.com/lavrox/SDK-IPWho-Swift/issues](https://github.com/lavrox/SDK-IPWho-Swift/issues)
+- GitHub Issues: [https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift/issues](https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift/issues)
 - Website: [https://www.ipwho.org](https://www.ipwho.org)
 
 ---
 
-Product by [https://lavrox.com](https://lavrox.com)
+[IPWho](https://www.ipwho.org) — a [Lavrox](https://lavrox.com) network API.
+
+[Lavrox](https://lavrox.com) — Independent API infrastructure. Lower latency, lower cost.
