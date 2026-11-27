@@ -160,7 +160,7 @@ Also `Timezone`, `Flag`, `Currency`, `Connection`, `Security`, `UserAgent` (brow
 ## Troubleshooting
 
 - Key: [https://www.ipwho.org](https://www.ipwho.org).
-- HTTP 403: the API rejects a blank User-Agent. The SDK sends `ipwho-swift-sdk/1.0.0`.
+- HTTP 403: your key or plan doesn't allow the request, or it was blocked before reaching the API because of its `User-Agent`. The SDK sends `ipwho-swift-sdk/1.0.0`.
 - Optionals: city and user-agent are often nil on anycast IPs.
 
 ## Testing

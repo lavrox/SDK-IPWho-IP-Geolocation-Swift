@@ -157,7 +157,7 @@ final class IPWhoClientTests: XCTestCase {
         }
         reply(401, #"{"error":"invalid_api_key"}"#)
         await assertThrows { error in
-            if case .httpError(let status, _) = error { return status == 401 }
+            if case .httpError(let status, let message) = error { return status == 401 && message == "invalid_api_key" }
             return false
         }
     }

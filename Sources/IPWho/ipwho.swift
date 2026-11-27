@@ -336,7 +336,7 @@ public struct CPU: Codable, Sendable {
 
 // MARK: - UserAgent
 
-/// User-agent details parsed from the IP's traffic.
+/// Details parsed from the request's own User-Agent header (here, the SDK's).
 public struct UserAgent: Codable, Sendable {
     public let browser: Browser?
     public let engine: Engine?
@@ -707,20 +707,26 @@ public final class IPWhoClient: Sendable {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
             throw IPWhoError.invalidResponse
         }
+        let body = try? decoder.decode(APIErrorBody.self, from: data)
+        // Auth errors carry a code in `error` and no `message`.
+        let detail = body?.message ?? body?.error
         switch httpResponse.statusCode {
         case 200:
             return
         case 404:
-            let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "IP not found"
-            throw IPWhoError.notFound(message: msg)
+            throw IPWhoError.notFound(message: detail ?? "IP not found")
         case 429:
-            let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "Rate limit exceeded"
-            throw IPWhoError.rateLimitExceeded(message: msg)
+            throw IPWhoError.rateLimitExceeded(message: detail ?? "Rate limit exceeded")
         default:
-            let msg = (try? decoder.decode(ErrorResponse.self, from: data))?.message ?? "Unknown error"
-            throw IPWhoError.httpError(statusCode: httpResponse.statusCode, message: msg)
+            throw IPWhoError.httpError(statusCode: httpResponse.statusCode, message: detail ?? "Unknown error")
         }
     }
+}
+
+/// The parts of a non-200 body that explain the failure.
+private struct APIErrorBody: Decodable {
+    let message: String?
+    let error: String?
 }
 
 // MARK: - Example Usage
