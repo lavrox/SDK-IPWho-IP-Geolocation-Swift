@@ -28,7 +28,7 @@ https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift
 .package(url: "https://github.com/lavrox/SDK-IPWho-IP-Geolocation-Swift.git", from: "1.0.0")
 ```
 
-Swift 5.9+. Client: `IPWhoClient`. Product: `IPWho`.
+Swift 5.9+ on Apple platforms (iOS 15, macOS 12, tvOS 15, watchOS 8 or later) and Linux. No third-party dependencies. Client: `IPWhoClient`. Product: `IPWho`.
 
 ## Quick Start
 
@@ -57,7 +57,9 @@ IpGeoResponse
     └── userAgent
 ```
 
-Bulk: `BulkResponse.data.responseArray: [IpGeoResponse]?`.
+Bulk: `BulkResponse.data.responseArray: [IpGeoResponse]?`, one per address. Check each row's `success`. A failed row has a `message`, and its `data` holds only the `ip`.
+
+The client sends your API key in the `Authorization` header, so it isn't part of the request URL.
 
 ## Reading the full response (8.8.8.8)
 
@@ -109,13 +111,15 @@ print(data?.security?.isVpn as Any)
 print(data?.security?.isTor as Any)
 print(data?.security?.isThreat ?? "")
 
-print(data?.userAgent?.browser.name ?? "")
+print(data?.userAgent?.browser?.name ?? "")
 
 let me = try await client.me()
 print(me.data?.ip ?? "")
 
 let bulk = try await client.bulk(ips: ["8.8.8.8", "1.1.1.1"])
-print(bulk.data?.responseArray?.count ?? 0)
+for row in bulk.data?.responseArray ?? [] {
+    print(row.data?.ip ?? "", row.success ? row.data?.geoLocation?.country ?? "" : row.message ?? "")
+}
 ```
 
 `lookup` / `me` take `format: ResponseFormat = .json` and optional `fields`.
@@ -156,10 +160,16 @@ Also `Timezone`, `Flag`, `Currency`, `Connection`, `Security`, `UserAgent` (brow
 ## Troubleshooting
 
 - Key: [https://www.ipwho.org](https://www.ipwho.org).
-- HTTP 403: do not strip the SDK User-Agent.
+- HTTP 403: your key or plan doesn't allow the request, or it was blocked before reaching the API because of its `User-Agent`. The SDK sends `ipwho-swift-sdk/1.0.0`.
 - Optionals: city and user-agent are often nil on anycast IPs.
 
 ## Testing
+
+```bash
+swift test
+```
+
+These tests need no API key and no network: a stub answers the requests. For a live check, which uses lookups from your quota:
 
 ```bash
 IPWHO_API_KEY=your_key swift run Check

@@ -20,5 +20,6 @@ let package = Package(
             dependencies: ["IPWho"],
             path: "Examples/Check"
         ),
+        .testTarget(name: "IPWhoTests", dependencies: ["IPWho"], path: "Tests/IPWhoTests"),
     ]
 )
