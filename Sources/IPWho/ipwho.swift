@@ -548,7 +548,8 @@ public final class IPWhoClient: Sendable {
         baseURL: URL = URL(string: "https://api.ipwho.org")!,
         session: URLSession = .shared
     ) {
-        self.apiKey = apiKey
+        // The key is sent in a header, so drop stray newlines and spaces.
+        self.apiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         self.baseURL = baseURL
         self.session = session
         self.decoder = JSONDecoder()

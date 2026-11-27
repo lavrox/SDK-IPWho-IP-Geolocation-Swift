@@ -74,6 +74,14 @@ final class IPWhoClientTests: XCTestCase {
         }
     }
 
+    func testKeyWithSurroundingWhitespaceIsTrimmed() async throws {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [StubProtocol.self]
+        let padded = IPWhoClient(apiKey: "  \(testKey)\n", session: URLSession(configuration: configuration))
+        _ = try await padded.lookup(ip: "8.8.8.8")
+        XCTAssertEqual(StubProtocol.requests[0].value(forHTTPHeaderField: "Authorization"), "Bearer \(testKey)")
+    }
+
     func testLookupMapsEveryGeoLocationCode() async throws {
         let data = try await client.lookup(ip: "8.8.8.8").data
         XCTAssertEqual(data?.ip, "8.8.8.8")
