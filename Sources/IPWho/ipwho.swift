@@ -119,12 +119,12 @@ public struct GeoLocation: Codable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case continent
-        case continentCode = "continent_code"
+        case continentCode
         case country
-        case countryCode = "country_code"
+        case countryCode
         case capital
         case region
-        case regionCode = "region_code"
+        case regionCode
         case city
         case postalCode = "postal_Code"
         case dialCode = "dial_code"
@@ -402,6 +402,19 @@ public struct GeoData: Codable, Sendable {
         case security
         case userAgent
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // `ip` is missing when a `fields` filter leaves it out.
+        ip = try container.decodeIfPresent(String.self, forKey: .ip) ?? ""
+        geoLocation = try container.decodeIfPresent(GeoLocation.self, forKey: .geoLocation)
+        timezone = try container.decodeIfPresent(Timezone.self, forKey: .timezone)
+        flag = try container.decodeIfPresent(Flag.self, forKey: .flag)
+        currency = try container.decodeIfPresent(Currency.self, forKey: .currency)
+        connection = try container.decodeIfPresent(Connection.self, forKey: .connection)
+        security = try container.decodeIfPresent(Security.self, forKey: .security)
+        userAgent = try container.decodeIfPresent(UserAgent.self, forKey: .userAgent)
+    }
 }
 
 // MARK: - IpGeoResponse (top-level)
@@ -453,7 +466,66 @@ public struct BulkData: Codable, Sendable {
     public init(responseArray: [IpGeoResponse]? = nil) {
         self.responseArray = responseArray
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case responseArray
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        responseArray = try container
+            .decodeIfPresent([BulkRow].self, forKey: .responseArray)?
+            .map(\.response)
+    }
 }
+
+/// One bulk result. The API sends each row flat:
+/// `{success, ip, geoLocation, ...}` or `{success: false, ip, message}`.
+/// A row already nested under `data` is accepted too.
+private struct BulkRow: Decodable {
+    let response: IpGeoResponse
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case data
+        case message
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let success = try container.decode(Bool.self, forKey: .success)
+        let message = try container.decodeIfPresent(String.self, forKey: .message)
+        let data = try container.decodeIfPresent(GeoData.self, forKey: .data)
+            ?? GeoData(from: decoder)
+        response = IpGeoResponse(success: success, data: data, message: message)
+    }
+}
+
+#if canImport(FoundationNetworking) && compiler(<6.0)
+/// Lets task cancellation reach the underlying `URLSessionDataTask`.
+private final class TaskHandle: @unchecked Sendable {
+    private let lock = NSLock()
+    private var task: URLSessionDataTask?
+    private var isCancelled = false
+
+    func start(_ task: URLSessionDataTask) {
+        lock.lock()
+        self.task = task
+        let cancelNow = isCancelled
+        lock.unlock()
+        task.resume()
+        if cancelNow { task.cancel() }
+    }
+
+    func cancel() {
+        lock.lock()
+        isCancelled = true
+        let current = task
+        lock.unlock()
+        current?.cancel()
+    }
+}
+#endif
 
 // MARK: - IPWhoClient
 
@@ -513,7 +585,8 @@ public final class IPWhoClient: Sendable {
 
     /// Perform a bulk IP lookup.
     /// - Parameter ips: Array of IPv4/IPv6 addresses.
-    /// - Returns: `BulkResponse` containing an array of `IpGeoResponse` objects.
+    /// - Returns: `BulkResponse` with one `IpGeoResponse` per address. Check each
+    ///   row's `success`. A failed row has a `message`, and its `data` holds only the `ip`.
     public func bulk(ips: [String]) async throws -> BulkResponse {
         guard !ips.isEmpty else {
             throw IPWhoError.apiError(message: "IP list must not be empty")
@@ -531,7 +604,7 @@ public final class IPWhoClient: Sendable {
         fields: String?
     ) async throws -> IpGeoResponse {
         let url = try buildURL(path: path, format: format, fields: fields)
-        let (data, response) = try await session.data(for: URLRequest(url: url))
+        let (data, response) = try await send(makeRequest(url))
         try validateHTTPResponse(response, data: data)
 
         // Non-JSON formats: unwrap raw text
@@ -555,7 +628,7 @@ public final class IPWhoClient: Sendable {
 
     private func performBulkRequest(path: String) async throws -> BulkResponse {
         let url = try buildURL(path: path, format: .json, fields: nil)
-        let (data, response) = try await session.data(for: URLRequest(url: url))
+        let (data, response) = try await send(makeRequest(url))
         try validateHTTPResponse(response, data: data)
 
         do {
@@ -571,6 +644,40 @@ public final class IPWhoClient: Sendable {
         }
     }
 
+    private func makeRequest(_ url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("ipwho-swift-sdk/1.0.0", forHTTPHeaderField: "User-Agent")
+        return request
+    }
+
+    private func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        #if canImport(FoundationNetworking) && compiler(<6.0)
+        // Foundation on Linux has no `URLSession.data(for:)` before Swift 6.0.
+        let handle = TaskHandle()
+        let session = self.session
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                let task = session.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else if let data = data, let response = response {
+                        continuation.resume(returning: (data, response))
+                    } else {
+                        continuation.resume(throwing: IPWhoError.invalidResponse)
+                    }
+                }
+                handle.start(task)
+            }
+        } onCancel: {
+            handle.cancel()
+        }
+        #else
+        return try await session.data(for: request)
+        #endif
+    }
+
     private func buildURL(
         path: String,
         format: ResponseFormat,
@@ -580,14 +687,15 @@ public final class IPWhoClient: Sendable {
                                              resolvingAgainstBaseURL: false) else {
             throw IPWhoError.invalidResponse
         }
-        var queryItems = [URLQueryItem(name: "apiKey", value: apiKey)]
+        // The API key is not a query item: makeRequest sends it in a header.
+        var queryItems: [URLQueryItem] = []
         if format != .json {
             queryItems.append(URLQueryItem(name: "format", value: format.rawValue))
         }
         if let fields = fields, !fields.isEmpty {
             queryItems.append(URLQueryItem(name: "get", value: fields))
         }
-        components.queryItems = queryItems
+        components.queryItems = queryItems.isEmpty ? nil : queryItems
         guard let url = components.url else {
             throw IPWhoError.invalidResponse
         }
